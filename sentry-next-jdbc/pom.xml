@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.clojars.karuta</groupId>
+  <artifactId>sentry-next-jdbc</artifactId>
+  <version>0.0.0</version>
+  <name>karuta/sentry-next-jdbc</name>
+  <description>A next-jdbc trace integration tool for sentry-clj</description>
+  <url>https://github.com/karuta0825/sentry-clj-integrations</url>
+  <licenses>
+    <license>
+      <name>Eclipse Public License</name>
+      <url>http://www.eclipse.org/legal/epl-v10.html</url>
+    </license>
+  </licenses>
+  <scm>
+    <url>https://github.com/karuta0825/sentry-clj-integrations</url>
+    <connection>scm:git:git://github.com/karuta0825/sentry-clj-integrations.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/karuta0825/sentry-clj-integrations.git</developerConnection>
+    <tag>0.0.0</tag>
+  </scm>
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+  </build>
+  <repositories>
+    <repository>
+      <id>clojars</id>
+      <url>https://repo.clojars.org/</url>
+    </repository>
+  </repositories>
+  <distributionManagement>
+    <repository>
+      <id>clojars</id>
+      <name>Clojars repository</name>
+      <url>https://clojars.org/repo</url>
+    </repository>
+  </distributionManagement>
+</project>
