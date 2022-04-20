@@ -7,7 +7,7 @@
 
 
 (def lib 'org.clojars.karuta/sentry-next-jdbc)
-(def version "0.1.0")
+(def version "0.1.4")
 
 
 #_ ; alternatively, use MAJOR.MINOR.COMMITS:

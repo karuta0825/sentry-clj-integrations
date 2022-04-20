@@ -1,4 +1,4 @@
-(ns sentry-next-jdbc.core
+(ns sentry-clj-integration.next.jdbc
   (:require
     [clojure.string :refer [join]]
     [next.jdbc.protocols :as p]
