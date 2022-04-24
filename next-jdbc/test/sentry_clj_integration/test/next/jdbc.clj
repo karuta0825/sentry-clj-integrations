@@ -1,4 +1,4 @@
-(ns sentry-clj-integration.next.jdbc-test
+(ns sentry-clj-integration.test.next.jdbc
   (:require
     [clojure.test :refer :all]
     [next.jdbc :as jdbc]
@@ -42,16 +42,16 @@
     tr))
 
 
-(def db {:dbtype "h2" :dbname "example"})
+(def db {:dbtype "h2:mem" :dbname "example"})
 (def ds (jdbc/get-datasource db))
 
 
-;; (jdbc/execute! ds ["
-;; create table address (
-;;   id int auto_increment primary key,
-;;   name varchar(32),
-;;   email varchar(255)
-;; )"])
+(jdbc/execute! ds ["
+create table address (
+  id int auto_increment primary key,
+  name varchar(32),
+  email varchar(255)
+)"])
 
 
 ;; (jdbc/execute! ds ["
@@ -65,7 +65,7 @@
 (deftest a-test
   (testing "FIXME, I fail."
     (let [tr (get-test-sentry-tracer)
-          db {:dbtype "h2" :dbname "example"}
+          db {:dbtype "h2:mem" :dbname "example"}
           con (jdbc/get-datasource db)
           ds (with-tracing con)]
       (jdbc/execute! ds ["select * from address"]
