@@ -1,19 +1,15 @@
-(ns sentry-next-jdbc.core
+(ns sentry-clj-integration.next.jdbc
   (:require
-    [clojure.string :refer [join]]
     [next.jdbc.protocols :as p]
     [sentry-clj.tracing :as st]))
 
-
 (defrecord SentryIntegrateSQL
   [connectable])
-
 
 (extend-protocol p/Sourceable
   SentryIntegrateSQL
   (get-datasource [this]
     (p/get-datasource (:connectable this))))
-
 
 (extend-protocol p/Connectable
   SentryIntegrateSQL
@@ -21,12 +17,10 @@
     (p/get-connection (:connectable this)
                       (merge (:options this) opts))))
 
-
 (defn- get-query-helper
   [sql-params]
-  (let [[sql & params] sql-params]
-    (str sql "\n [Parameters]: " (join "," params))))
-
+  (let [[sql] sql-params]
+    sql))
 
 (extend-protocol p/Executable
   SentryIntegrateSQL
@@ -43,20 +37,17 @@
                               (p/-execute-all (:connectable this) sql-params
                                               (merge (:options this) opts)))))
 
-
 (extend-protocol p/Preparable
   SentryIntegrateSQL
   (prepare [this sql-params opts]
     (p/prepare (:connectable this) sql-params
                (merge (:options this) opts))))
 
-
 (extend-protocol p/Transactable
   SentryIntegrateSQL
   (-transact [this body-fn opts]
     (st/with-start-child-span "db" "START TRANSACTION" (p/-transact (:connectable this) body-fn
                                                                     (merge (:options this) opts)))))
-
 
 (defn with-tracing
   [connectable]
