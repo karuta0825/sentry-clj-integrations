@@ -12,10 +12,12 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: next-jdbc
     strategy:
       matrix:
         java: ['8', '17']
-    working-directory: next-jdbc
     steps:
       - uses: actions/checkout@v3
 
