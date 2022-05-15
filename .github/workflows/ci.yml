@@ -42,4 +42,4 @@ jobs:
           tools-deps: 'latest'
 
       - name: Run Tests
-        run: clojure -T:build run-tests
+        run: clojure -T:build test
