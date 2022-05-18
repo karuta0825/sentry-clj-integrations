@@ -1,0 +1,45 @@
+name: Test Clojure Sentry Integrations Library
+
+on:
+  push:
+    branches:
+      - '**'
+
+env:
+  APPLICATION: sentry-clj-integrations
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: next-jdbc
+    strategy:
+      matrix:
+        java: ['8', '17']
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.m2
+            ~/.gitlibs
+          key: ${{ env.APPLICATION }}-${{ hashFiles('deps.edn') }}
+          restore-keys: ${{ env.APPLICATION }}-${{ hashFiles('deps.edn') }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@master
+        with:
+          tools-deps: 'latest'
+
+      - name: Run Tests
+        run: clojure -T:build test
