@@ -19,8 +19,7 @@
 
 (defn- get-query-helper
   [sql-params]
-  (let [[sql] sql-params]
-    sql))
+  (first sql-params))
 
 (extend-protocol p/Executable
   SentryIntegrateSQL
@@ -46,8 +45,14 @@
 (extend-protocol p/Transactable
   SentryIntegrateSQL
   (-transact [this body-fn opts]
-    (st/with-start-child-span "db" "START TRANSACTION" (p/-transact (:connectable this) body-fn
-                                                                    (merge (:options this) opts)))))
+    (try
+      (let [result (st/with-start-child-span "db" "START TRANSACTION" (p/-transact (:connectable this) body-fn
+                                                                                   (merge (:options this) opts)))]
+        (st/with-start-child-span "db" "COMMIT")
+        result)
+      (catch Exception e
+        (st/with-start-child-span "db" "ROLLBACK")
+        (throw e)))))
 
 (defn with-tracing
   [connectable]

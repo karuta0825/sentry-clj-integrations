@@ -48,7 +48,7 @@ insert into address(name,email)
       (expect result [{:email "sean@corfield.org", :id 1, :name "Sean Corfield"}])))
 
   (expecting
-    "when a insert query is executed, the query is traced"
+    "when an insert query is executed, the query is traced"
     (let [tr (h/get-test-sentry-tracer)
           db {:dbtype "h2:mem" :dbname "example"}
           con (jdbc/get-datasource db)
@@ -105,7 +105,7 @@ insert into address(name,email)
       (expect result {:email "sean@corfield.org", :id 1, :name "Sean Corfield"})))
 
   (expecting
-    "when a insert query is executed, the query is traced"
+    "when an insert query is executed, the query is traced"
     (let [tr (h/get-test-sentry-tracer)
           db {:dbtype "h2:mem" :dbname "example"}
           con (jdbc/get-datasource db)
@@ -146,17 +146,39 @@ insert into address(name,email)
       (expect {:next.jdbc/update-count 1} result))))
 
 (defexpect transaction-test
-  "when an query is executed in an transaction, the both transaction and query is traced."
-  (let [tr (h/get-test-sentry-tracer)
-        db {:dbtype "h2:mem" :dbname "example"}
-        con (jdbc/get-datasource db)
-        ds (with-tracing con)
-        result (jdbc/with-transaction [tx ds]
-                                      (let [rtx (with-tracing tx)]
-                                        (jdbc/execute! rtx ["update address set name = ? where id = ?" "karuta" 1])
-                                        (jdbc/execute! rtx ["select * from address"])))]
+  (expecting
+    "when a query is executed in an transaction, the both transaction and query is traced."
+    (let [tr (h/get-test-sentry-tracer)
+          db {:dbtype "h2:mem" :dbname "example"}
+          con (jdbc/get-datasource db)
+          ds (with-tracing con)
+          result (jdbc/with-transaction [tx ds]
+                                        (let [rtx (with-tracing tx)]
+                                          (jdbc/execute! rtx ["update address set name = ? where id = ?" "karuta" 1])
+                                          (jdbc/execute! rtx ["select * from address"])))]
 
-    (expect (count (.getChildren tr)) 3)
-    (expect ["START TRANSACTION" "update address set name = ? where id = ?" "select * from address"]
-            (map (fn [t] (.getDescription t)) (.getChildren tr)))
-    (expect [{:ADDRESS/EMAIL "sean@corfield.org", :ADDRESS/ID 1, :ADDRESS/NAME "karuta"}] result)))
+      (expect (count (.getChildren tr)) 4)
+      (expect ["START TRANSACTION" "update address set name = ? where id = ?" "select * from address" "COMMIT"]
+              (map (fn [t] (.getDescription t)) (.getChildren tr)))
+      (expect [{:ADDRESS/EMAIL "sean@corfield.org", :ADDRESS/ID 1, :ADDRESS/NAME "karuta"}] result)))
+
+  (expecting
+    "when executed queries fail, the rollback process is also executed."
+    (let [tr (h/get-test-sentry-tracer)
+          db {:dbtype "h2:mem" :dbname "example"}
+          con (jdbc/get-datasource db)
+          ds (with-tracing con)]
+      (try
+        (jdbc/with-transaction [tx ds]
+                               (let [rtx (with-tracing tx)]
+                                 (jdbc/execute! rtx ["delete from address where id = ?" 1])
+                                 (throw (ex-info "Error!" {}))
+                                 (jdbc/execute! rtx ["insert into address(name,email) values('kurta','kurata@github.com')"])))
+        (catch Exception _))
+
+      (let [result (jdbc/execute! con ["select * from address"])]
+        (prn result)
+        (expect (count (.getChildren tr)) 3)
+        (expect ["START TRANSACTION" "delete from address where id = ?" "ROLLBACK"]
+                (map (fn [t] (.getDescription t)) (.getChildren tr)))
+        (expect [{:ADDRESS/EMAIL "sean@corfield.org", :ADDRESS/ID 1, :ADDRESS/NAME "karuta"}] result)))))

@@ -18,6 +18,14 @@
   (-> (merge {:main-args ["-m" "kaocha.runner"]} opts)
       (bb/run-tests)))
 
+(defn jar
+  "Make a jar."
+  [opts]
+  (-> opts
+      (assoc :lib lib :version version)
+      (bb/clean)
+      (bb/jar)))
+
 (defn ci
   "Run the CI pipeline of tests (and build the JAR)."
   [opts]
